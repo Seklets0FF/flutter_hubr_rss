@@ -5,6 +5,8 @@ import 'package:flutter_hubr_rss/common/fetch_http_habs.dart';
 import 'dart:io' as io;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:flutter_hubr_rss/screens/read_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreenRSS extends StatefulWidget {
   @override
@@ -14,6 +16,24 @@ class HomeScreenRSS extends StatefulWidget {
 class _HomeScreenRSSState extends State {
   bool _darkTheme = false;
   List _habsList = [];
+
+
+  @override
+  void initState() {
+    super.initState();
+    _setTheme();
+  }
+
+  _setTheme() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      if(_prefs.getBool('darkTheme') != null) {
+        _darkTheme = _prefs.getBool('darkTheme');
+      } else {
+        _darkTheme = false;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,20 +78,27 @@ class _HomeScreenRSSState extends State {
                                 height: 20.0,
                               ),
                               Text(
-                                '${parseDescription(_habsList[index].description)}',
+                                '${parseDescription(
+                                    _habsList[index].description)}',
                                 style: TextStyle(fontSize: 16.0),
                               ),
                               SizedBox(
                                 height: 20.0,
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
                                 children: [
                                   Text(DateFormat('dd.mm.yyyy kk:mm').format(
                                       DateTime.parse(
                                           '${_habsList[index].pubDate}'))),
                                   FloatingActionButton.extended(
-                                    onPressed: null,
+                                    heroTag: null,
+                                    onPressed: () =>
+                                        Navigator.push(
+                                            context, MaterialPageRoute(
+                                            builder: (context) => ReadScreen(urlHab: '${_habsList[index].guid}',)
+                                        )),
                                     label: Text('Читать'),
                                     icon: Icon(Icons.arrow_forward),
                                   )
@@ -105,6 +132,7 @@ class _HomeScreenRSSState extends State {
         onChanged: (bool value) {
           setState(() {
             _darkTheme = !_darkTheme;
+            _saveTheme();
           });
         },
       );
@@ -114,6 +142,7 @@ class _HomeScreenRSSState extends State {
         onChanged: (bool value) {
           setState(() {
             _darkTheme = !_darkTheme;
+            _saveTheme();
           });
         },
       );
@@ -128,5 +157,10 @@ class _HomeScreenRSSState extends State {
     });
 
     return _habsList;
+  }
+
+  _saveTheme() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    _prefs.setBool('darkTheme', _darkTheme);
   }
 }
